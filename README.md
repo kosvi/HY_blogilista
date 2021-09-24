@@ -10,6 +10,7 @@ To run this app, you have to create file `.env` to project root with following c
 
 ```
 MONGODB_URI=<mongo-url>
+MONGODB_URI_TEST=<mongo-url-for-tests>
 PORT=<port-number>
 ```
 App can then be run in development mode with command: `npm run dev`

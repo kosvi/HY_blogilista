@@ -1,4 +1,3 @@
-const { text } = require('express')
 const listHelper = require('../utils/list_helper')
 
 const singleBlogWithZeroLikes = [{
@@ -127,7 +126,7 @@ describe('most blogs', () => {
   })
 })
 
-describe.only('most likes', () => {
+describe('most likes', () => {
   test('empty array, expect number of likes to be negative', () => {
     expect(listHelper.mostLikes([])).toEqual({ author: '', likes: -1 })
   })
