@@ -12,14 +12,18 @@ usersRouter.post('/', async (request, response, next) => {
   const saltRounds = 10
   const passwordMinLength = 3
 
+  if (!Object.prototype.hasOwnProperty.call(body, 'password')) {
+    response.status(400).json({ error: 'password is required' })
+    return
+  }
   // check that password is valid
-  if (!body.password || body.password.length < passwordMinLength) {
+  if (body.password.length < passwordMinLength) {
     // wasn't provided or was too short
     response.status(400).json({ error: 'password is too short' })
+    return
   }
-
-  const passwordHash = await bcrypt.hash(body.password, saltRounds)
   try {
+    const passwordHash = await bcrypt.hash(body.password, saltRounds)
     const user = new User({
       username: body.username,
       name: body.name,
@@ -28,8 +32,8 @@ usersRouter.post('/', async (request, response, next) => {
 
     const savedUser = await user.save()
     response.status(201).json(savedUser)
-  } catch (err) {
-    next(err)
+  } catch (error) {
+    next(error)
   }
 })
 

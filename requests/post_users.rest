@@ -6,3 +6,24 @@ Content-Type: application/json
   "password": "b",
   "name": "Foo Bar"
 }
+
+### 
+
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+  "password": "foobar",
+  "name": "Foo Bar"
+}
+
+###
+
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+  "username": "ville",
+  "password": "ville",
+  "name": "Ville Koskela"
+}
