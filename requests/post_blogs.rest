@@ -3,8 +3,8 @@ Content-Type: application/json
 Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InZpbGxlIiwiaWQiOiI2MTU1ZWQyOWQ0NDFlZjQ4ZGY1MWQxNWUiLCJpYXQiOjE2MzMxMTIwMzh9.x8y4vOwkKeWcXdzjGaUa7L4JT82Bra_S88ZaMCLuOxU
 
 {
-  "title": "FooBlog",
-  "author": "Foo Bar",
-  "url": "http://fooblog.example.com",
-  "likes": 1
+  "title": "Testi",
+  "author": "Jokuvaan",
+  "url": "http://testblog.example.com",
+  "likes": 15
 }
