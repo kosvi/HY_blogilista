@@ -98,16 +98,24 @@ describe('blogs api', () => {
     })
 
     test('make sure api sends 401 if token is missing on incorrect', async () => {
-      const res = await api.post('/api/blogs').send(blogObj) //.set('Authorization', 'bearer 123').expect(401)
+      const res = await api.post('/api/blogs').send(blogObj).expect(401)
       expect(res.body).toHaveProperty('error')
-//      await api.post('/api/blogs').send(blogObj).set('Authorization', `bearer ${userObj.token}2`).expect(401)
+      await api.post('/api/blogs').send(blogObj).set('Authorization', `bearer ${userObj.token}2`).expect(401)
+    })
+
+    test('make sure blog is not stored if token is incorrect', async () => {
+      await api.post('/api/blogs').send(blogObj).expect(401)
+      await api.post('/api/blogs').send(blogObj).set('Authorization', `bearer ${userObj.token}2`).expect(401)
+      const res = await api.get('/api/blogs')
+      expect(res.body.map(blog => blog.title)).not.toContain(blogObj.title)
+      expect(res.body.map(blog => blog.author)).not.toContain(blogObj.author)
     })
   })
 
   describe('DELETE blogs', () => {
     test('allow deleting blog by id', async () => {
       const blogsInDb = await helper.blogsInDB()
-      const res = await api.delete(`/api/blogs/${blogsInDb[0].id}`)
+      const res = await api.delete(`/api/blogs/${blogsInDb[0].id}`).set('Authorization', `bearer ${userObj.token}`)
       expect(res.status).toBe(204)
       const allBlogs = await api.get('/api/blogs')
       expect(allBlogs.body).toHaveLength(helper.testBlogs.length - 1)
@@ -115,10 +123,32 @@ describe('blogs api', () => {
     })
     test('delete with id not found in db returns 404', async () => {
       const nonExistingId = await helper.nonExistingId()
-      const res = await api.delete(`/api/blogs/${nonExistingId}`)
+      const res = await api.delete(`/api/blogs/${nonExistingId}`).set('Authorization', `bearer ${userObj.token}`)
       expect(res.status).toBe(404)
       const allBlogs = await api.get('/api/blogs')
       expect(allBlogs.body).toHaveLength(helper.testBlogs.length)
+    })
+    test('delete without proper token gives 401', async () => {
+      const blogsInDb = await helper.blogsInDB()
+      const res = await api.delete(`/api/blogs/${blogsInDb[0].id}`).expect(401)
+      expect(res.body).toHaveProperty('error')
+    })
+    test('do not allow deleting of blogs not posted by user', async () => {
+      // let's first add another user
+      await api.post('/api/users').send({ username: 'someone', password: 'someone', name: 'someone' })
+      // login with that user
+      const loginResponse = await api.post('/api/login').send({ username: 'someone', password: 'someone' })
+      // add new blog with newly created user
+      const blogPostResponse = await api.post('/api/blogs').send(blogObj).set('Authorization', `bearer ${loginResponse.body.token}`)
+      const blogId = blogPostResponse.body.id
+      // let's get the number of blogs in the database
+      const beforeDeleteGet = await api.get('/api/blogs')
+      const blogsBeforeDelete = beforeDeleteGet.body.length
+      // now try to delete 'blogId' as someone else
+      await api.delete(`/api/blogs/${blogId}`).set('Authorization', `bearer ${userObj.token}`).expect(401)
+      // make sure blogs haven't been deleted from database
+      const afterDeleteGet = await api.get('/api/blogs')
+      expect(afterDeleteGet.body.length).toBe(blogsBeforeDelete)
     })
   })
 

@@ -11,7 +11,6 @@ blogsRouter.get('/', async (request, response) => {
 blogsRouter.post('/', middleware.authenticate, async (request, response, next) => {
   if (!Object.prototype.hasOwnProperty.call(request, 'userId')) {
     // middleware has not added userId -> error
-    response.status(500).json({ error: 'no userId in the request' })
     return
   }
   const user = await User.findById(request.userId)
@@ -37,14 +36,27 @@ blogsRouter.post('/', middleware.authenticate, async (request, response, next) =
   }
 })
 
-blogsRouter.delete('/:id', async (request, response, next) => {
+blogsRouter.delete('/:id', middleware.authenticate, async (request, response, next) => {
   const id = request.params.id
+  // first check that user is also the poster
+  if (!Object.prototype.hasOwnProperty.call(request, 'userId')) {
+    // user is not logged in, middleware should have handled this!
+    next()
+    return
+  }
+  const blog = await Blog.findById(id)
+  if (blog === null) {
+    // 404
+    response.status(404).end()
+    return
+  }
+  if (blog.user.toString() !== request.userId) {
+    response.status(401).json({ error: 'unauthorized' })
+    next()
+    return
+  }
   try {
-    const res = await Blog.findByIdAndDelete(id)
-    if (res === null) {
-      // 404
-      response.status(404).end()
-    }
+    await Blog.findByIdAndDelete(id)
     response.status(204).end()
   } catch (error) {
     next(error)

@@ -20,15 +20,22 @@ const authenticate = async (request, response, next) => {
   if (!auth || !auth.toLowerCase().startsWith('bearer ')) {
     response.status(401).json({ error: 'invalid token' })
     next()
+    return
   }
-  const token = jwt.verify(auth.substring(7), process.env.SECRET)
-  if (!token || !token.id) {
+  try {
+    const token = jwt.verify(auth.substring(7), process.env.SECRET)
+    if (!token || !token.id) {
+      response.status(401).json({ error: 'invalid token' })
+      return
+    }
+    const user = token.username
+    const id = token.id
+    request.user = user
+    request.userId = id
+  } catch (error) {
+    logger.log(error.message)
     response.status(401).json({ error: 'invalid token' })
   }
-  const user = token.username
-  const id = token.id
-  request.user = user
-  request.userId = id
   next()
 }
 

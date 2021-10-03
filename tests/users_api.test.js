@@ -6,6 +6,11 @@ const helper = require('./test_helper')
 
 const api = supertest(app)
 
+const blogObj = {
+  title: 'Test Blog',
+  author: 'Test Author',
+  url: 'http://testblog.example.com'
+}
 const userObj = {
   username: 'foobar',
   password: 'foobar',
@@ -25,14 +30,28 @@ describe('users api', () => {
       const res = await api.get('/api/users').expect(200).expect('Content-Type', /application\/json/)
       expect(res.body).toHaveLength(helper.testUsers.length)
     })
-    test('Users returned contain id, username and name, but no _id and password', async () => {
+    test('Users returned contain id, username, blogs and name, but no _id and password', async () => {
       const res = await api.get('/api/users')
       const user = res.body[0]
       expect(user.id).toBeDefined()
       expect(user.username).toBeDefined()
       expect(user.name).toBeDefined()
+      expect(user.blogs).toBeDefined()
       expect(user._id).not.toBeDefined()
       expect(user.password).not.toBeDefined()
+    })
+    test('Users returned also contain list of blogs', async () => {
+      await api.post('/api/users').send(userObj).expect(201)
+      const res = await api.post('/api/login').send({ username: userObj.username, password: userObj.password })
+      const token = `bearer ${res.body.token}`
+      await api.post('/api/blogs').send(blogObj).set('Authorization', token)
+      await api.post('/api/blogs').send(blogObj).set('Authorization', token)
+      const response = await api.get('/api/users')
+      const user = response.body.filter(user => user.username === userObj.username)
+      expect(user[0].blogs).toHaveLength(2) // magic numbers!
+      expect(user[0].blogs.map(blog => blog.title)).toContain(blogObj.title)
+      expect(user[0].blogs.map(blog => blog.author)).toContain(blogObj.author)
+      expect(user[0].blogs.map(blog => blog.url)).toContain(blogObj.url)
     })
   })
 
