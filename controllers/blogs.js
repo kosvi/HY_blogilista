@@ -8,6 +8,12 @@ blogsRouter.get('/', async (request, response) => {
   response.json(res)
 })
 
+blogsRouter.get('/:id', async (request, response) => {
+  const id = request.params.id
+  const res = await Blog.findById(id).populate('user', { username: 1, name: 1, id: 1 })
+  response.json(res)
+})
+
 blogsRouter.post('/', middleware.authenticate, async (request, response, next) => {
   if (!Object.prototype.hasOwnProperty.call(request, 'userId')) {
     // middleware has not added userId -> error

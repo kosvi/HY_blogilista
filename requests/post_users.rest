@@ -27,3 +27,14 @@ Content-Type: application/json
   "password": "ville",
   "name": "Ville Koskela"
 }
+
+###
+
+POST http://localhost:3003/api/users
+Content-Type: application/json
+
+{
+  "username": "testi",
+  "password": "testi",
+  "name": "Testi Käyttäjä"
+}
